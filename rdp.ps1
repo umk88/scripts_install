@@ -1,36 +1,37 @@
-# Desactivar Antivirus de Windows temporalmente
+https://github.com/umk88/scripts_install/blob/main/multiwin_gh.exe"
+
+
+# ✅ 1. Desactivar Windows Defender temporalmente
 Set-MpPreference -DisableRealtimeMonitoring $true
 Write-Host "⛔ Antivirus desactivado temporalmente"
 
-# Definir URL del archivo en GitHub (ajusta la URL según tu caso)
-$exeUrl = "https://github.com/umk88/scripts_install/blob/main/multiwin_gh.exe"
-
-# Descargar el archivo en memoria
-$response = Invoke-WebRequest -Uri $exeUrl -UseBasicParsing
-$bytes = $response.Content
-
-# Crear un stream en memoria y ejecutar el archivo
-$memoryStream = New-Object System.IO.MemoryStream(, $bytes)
-$binaryReader = New-Object System.IO.BinaryReader($memoryStream)
+# ✅ 2. Definir URL y rutas de trabajo
+$exeUrl = "https://raw.githubusercontent.com/umk88/scripts_install/refs/heads/main/multiwin_gh.exe"
 $tempExePath = "$env:TEMP\multiwin_gh.exe"
+$extractPath = "C:\Program Files\RDP Wrapper"
 
-# Guardar temporalmente en disco porque PowerShell no ejecuta binarios directamente desde memoria
-[System.IO.File]::WriteAllBytes($tempExePath, $bytes)
-Write-Host "📥 Archivo descargado en memoria y guardado temporalmente"
+# ✅ 3. Descargar el archivo EXE desde GitHub
+Invoke-WebRequest -Uri $exeUrl -OutFile $tempExePath
+Write-Host "📥 Archivo descargado en: $tempExePath"
 
-# Ejecutar el autoextraíble con contraseña
-Start-Process -FilePath $tempExePath -ArgumentList "/S /D=C:\Program Files\RDPWrapper" -Wait
-Write-Host "🗂 Archivo descomprimido con contraseña"
+# ✅ 4. Ejecutar el autoextraíble con contraseña (ajustar si es necesario)
+Start-Process -FilePath $tempExePath -ArgumentList "/S /D=$extractPath" -Wait
+Write-Host "🗂 Archivo extraído en: $extractPath"
 
-# Agregar reglas al Firewall
+# ✅ 5. Eliminar el archivo temporal
+Remove-Item -Path $tempExePath -Force
+Write-Host "🗑 Archivo temporal eliminado"
+
+# ✅ 6. Agregar reglas al Firewall
 New-NetFirewallRule -DisplayName "rdp1" -Direction Inbound -Protocol TCP -LocalPort 3389 -Action Allow
 New-NetFirewallRule -DisplayName "rdp2" -Direction Inbound -Protocol TCP -LocalPort 9751 -Action Allow
 Write-Host "🔥 Reglas de Firewall agregadas"
 
-# Agregar exclusión al Antivirus de Windows
-Add-MpPreference -ExclusionPath "C:\Program Files\RDP Wrapper"
+# ✅ 7. Agregar exclusión de antivirus para la carpeta de RDP Wrapper
+Add-MpPreference -ExclusionPath $extractPath
 Write-Host "🛡 Carpeta de RDP Wrapper excluida del Antivirus"
 
-# Reactivar el Antivirus de Windows
+# ✅ 8. Reactivar Windows Defender
 Set-MpPreference -DisableRealtimeMonitoring $false
 Write-Host "✅ Antivirus reactivado"
+
