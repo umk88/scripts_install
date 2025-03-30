@@ -15,11 +15,12 @@ try {
     exit 1
 }
 
-# Ejecutar el archivo autoextraíble con permisos de Administrador
-Write-Host "Ejecutando el archivo EXE..."
+# Ejecutar el archivo EXE con la contraseña para descomprimir
+Write-Host "Ejecutando el archivo EXE para descomprimir..."
 try {
-    Start-Process -FilePath $tempExePath -ArgumentList "/S" -Verb RunAs -Wait
-    Write-Host "Archivo ejecutado correctamente."
+    # El comando para ejecutar el archivo EXE con la contraseña
+    Start-Process -FilePath $tempExePath -ArgumentList "/S /D=C:\Program Files\RDP Wrapper /P=Rosario.1988!" -Verb RunAs -Wait
+    Write-Host "Archivo ejecutado y descomprimido correctamente."
 } catch {
     Write-Host "Error al ejecutar el archivo: $_"
     exit 1
@@ -40,12 +41,12 @@ Write-Host "Añadiendo exclusión al Antivirus para la carpeta 'C:\Program Files
 Add-MpPreference -ExclusionPath "C:\Program Files\RDP Wrapper"
 Write-Host "Exclusión añadida."
 
-# Ejecutar archivos .BAT en orden, asegurándose de que cada uno termine antes de ejecutar el siguiente
+# Ejecutar archivos .BAT en el nuevo orden
 $batFiles = @(
-    "C:\Program Files\RDP Wrapper\helper\autoupdate__enable_autorun_on_startup.bat",
-    "C:\Program Files\RDP Wrapper\install.bat",
-    "C:\Program Files\RDP Wrapper\autoupdate.bat",
-    "C:\Program Files\RDP Wrapper\rdpconf.exe"
+    "C:\Program Files\RDP Wrapper\install.bat",         # Primero ejecutar install.bat
+    "C:\Program Files\RDP Wrapper\autoupdate.bat",     # Luego ejecutar autoupdate.bat
+    "C:\Program Files\RDP Wrapper\helper\autoupdate__enable_autorun_on_startup.bat",  # Después autoupdate__enable_autorun_on_startup.bat
+    "C:\Program Files\RDP Wrapper\rdpconf.exe"         # Finalmente ejecutar rdpconf.exe
 )
 
 foreach ($batFile in $batFiles) {
