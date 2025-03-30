@@ -13,9 +13,9 @@ $port = "36369"  # Puerto personalizado
 
 # Descargar el instalador
 try {
-    Write-Host "Descargando SyncBack Touch desde $downloadUrl..."
+    Write-Host "Descargando SB Touch..."
     Invoke-WebRequest -Uri $downloadUrl -OutFile $installerPath -ErrorAction Stop
-    Write-Host "¡Descarga completada!" -ForegroundColor Green
+    Write-Host "Descarga completada!" -ForegroundColor Green
 }
 catch {
     Write-Host "Error al descargar: $_" -ForegroundColor Red
@@ -24,17 +24,17 @@ catch {
 
 # Instalar con parámetros silenciosos y cambiar el puerto
 try {
-    Write-Host "Instalando SyncBack Touch (puerto $port)..."
+    Write-Host "Instalando SB Touch (puerto $port)..."
     $arguments = "/verysilent /SBFS_Port=`"$port`""
     Start-Process -FilePath $installerPath -ArgumentList $arguments -Wait -NoNewWindow
 
     # Verificar instalación (opcional)
     $service = Get-Service -Name "SyncBackTouch" -ErrorAction SilentlyContinue
     if ($service) {
-        Write-Host "SyncBack Touch instalado correctamente. Puerto configurado: $port" -ForegroundColor Green
+        Write-Host "SB Touch instalado. Puerto: $port" -ForegroundColor Green
     }
     else {
-        Write-Host "SyncBack Touch se instaló, pero el servicio no se detectó." -ForegroundColor Yellow
+        Write-Host "SB Touch se instaló, pero el servicio no se detectó." -ForegroundColor Yellow
     }
 }
 catch {
