@@ -1,27 +1,15 @@
 <#
 .SYNOPSIS
-    Instala Tailscale de manera silenciosa con mensajes visuales personalizados.
+    Instala Tailscale de manera silenciosa y con verificación de pasos.
 .DESCRIPTION
-    Descarga e instala Tailscale, muestra el logo "UMK" durante la instalación,
-    y notifica claramente si fue exitosa o falló.
+    Descarga el instalador oficial de Tailscale y lo instala en modo silencioso.
+    Incluye manejo de errores, limpieza de archivos temporales y mensajes personalizados.
 #>
 
 # Configuración
 $InstallerUrl = "https://pkgs.tailscale.com/stable/tailscale-setup-latest.exe"
 $InstallerPath = "$env:TEMP\tailscale-setup.exe"
 $LogPath = "$env:TEMP\tailscale-install.log"
-
-# Función para mostrar el logo "UMK"
-function Show-UMKLogo {
-    Write-Host @"
-  _   _ __  __ _    
- | | | |  \/  | |   
- | | | | |\/| | |   
- | |_| | |  | | |___
-  \___/|_|  |_|_____|
-"@ -ForegroundColor Cyan
-    Write-Host "`nInstalando Tailscale, por favor espere...`n" -ForegroundColor White
-}
 
 # Función para registrar eventos
 function Write-Log {
@@ -30,15 +18,31 @@ function Write-Log {
     Add-Content -Path $LogPath -Value "[$timestamp] $message"
 }
 
-# Mostrar logo al inicio
-Clear-Host
-Show-UMKLogo
+# Función para mostrar mensaje de éxito
+function Show-Success {
+    Write-Host "============================================" -ForegroundColor Green
+    Write-Host "            VPN EXITOSA                     " -ForegroundColor Green
+    Write-Host "============================================" -ForegroundColor Green
+    Write-Host "Tailscale se ha instalado correctamente." -ForegroundColor Green
+    Write-Host "Puedes comenzar a usar la VPN ahora." -ForegroundColor Green
+}
+
+# Función para mostrar mensaje de error
+function Show-Error {
+    param ([string]$errorMessage)
+    Write-Host "============================================" -ForegroundColor Red
+    Write-Host "        ERROR DE INSTALACIÓN                " -ForegroundColor Red
+    Write-Host "============================================" -ForegroundColor Red
+    Write-Host "Hubo un problema durante la instalación:" -ForegroundColor Red
+    Write-Host $errorMessage -ForegroundColor Red
+    Write-Host "Consulta el archivo de log en $LogPath" -ForegroundColor Yellow
+}
 
 try {
-    # 1. Cerrar Tailscale si está en ejecución
+    # 1. Verificar y cerrar Tailscale si ya está en ejecución
     $tailscaleProcess = Get-Process -Name "tailscale*" -ErrorAction SilentlyContinue
     if ($tailscaleProcess) {
-        Write-Log "Cerrando procesos existentes de Tailscale..."
+        Write-Log "Cerrando procesos de Tailscale existentes..."
         Stop-Process -Name "tailscale*" -Force
     }
 
@@ -57,31 +61,17 @@ try {
 
     # 4. Verificar instalación
     if ($process.ExitCode -eq 0) {
-        Write-Log "Instalación exitosa."
-        Clear-Host
-        Write-Host @"
-  _   _ __  __ _      ✅ TAILSCALE INSTALADO CORRECTAMENTE
- | | | |  \/  | |     ----------------------------------
- | | | | |\/| | |     Ahora puedes configurar Tailscale con:
- | |_| | |  | | |___    tailscale up
-  \___/|_|  |_|_____|   
-"@ -ForegroundColor Green
+        Write-Log "Tailscale instalado correctamente."
+        Show-Success
     } else {
-        throw "Error en la instalación (Código: $($process.ExitCode)). Ver $env:TEMP\tailscale-setup.log"
+        throw "Código de error: $($process.ExitCode). Ver $env:TEMP\tailscale-setup.log"
     }
 
 } catch {
     Write-Log "ERROR: $_"
-    Clear-Host
-    Write-Host @"
-  _   _ __  __ _      ❌ ERROR EN LA INSTALACIÓN
- | | | |  \/  | |     -------------------------
- | | | | |\/| | |     $_ 
- | |_| | |  | | |___   Consulta el log en $LogPath
-  \___/|_|  |_|_____|  
-"@ -ForegroundColor Red
+    Show-Error $_
     exit 1
 } finally {
-    # Limpieza opcional
-    if (Test-Path $InstallerPath) { Remove-Item $InstallerPath -Force -ErrorAction SilentlyContinue }
+    # Limpieza opcional (descomentar si se desea eliminar el instalador)
+    # if (Test-Path $InstallerPath) { Remove-Item $InstallerPath -Force }
 }
