@@ -1,6 +1,3 @@
-https://github.com/umk88/scripts_install/blob/main/multiwin_gh.exe"
-
-
 # ✅ 1. Desactivar Windows Defender temporalmente
 Set-MpPreference -DisableRealtimeMonitoring $true
 Write-Host "⛔ Antivirus desactivado temporalmente"
