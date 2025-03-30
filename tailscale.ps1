@@ -18,7 +18,7 @@ function Show-UnamarkLogo {
  | | | | | \| |   /_\   |  \/  |   /_\   | _ \ | |/ /
  | |_| | | .` |  / _ \  | |\/| |  / _ \  |   / | ' < 
   \___/  |_|\_| /_/ \_\ |_|  |_| /_/ \_\ |_|_\ |_|\_\
-"@ -ForegroundColor Cyan
+"@ -ForegroundColor White
     Write-Host "`nInstalando VPN, por favor espere...`n" -ForegroundColor White
 }
 
