@@ -11,15 +11,14 @@ $InstallerUrl = "https://pkgs.tailscale.com/stable/tailscale-setup-latest.exe"
 $InstallerPath = "$env:TEMP\tailscale-setup.exe"
 $LogPath = "$env:TEMP\tailscale-install.log"
 
-# Función para mostrar logo UNAMARK
+# Función para mostrar el nuevo logo
 function Show-UnamarkLogo {
     Write-Host @"
-██    ██ ███    ██  █████  ███    ███  █████  ██████  ██   ██ 
-██    ██ ████   ██ ██   ██ ████  ████ ██   ██ ██   ██ ██  ██  
-██    ██ ██ ██  ██ ███████ ██ ████ ██ ███████ ██████  █████   
-██    ██ ██  ██ ██ ██   ██ ██  ██  ██ ██   ██ ██   ██ ██  ██  
- ██████  ██   ████ ██   ██ ██      ██ ██   ██ ██   ██ ██   ██
-"@ -ForegroundColor Blue    
+  _   _   _  _     _     __  __     _     ___   _  __
+ | | | | | \| |   /_\   |  \/  |   /_\   | _ \ | |/ /
+ | |_| | | .` |  / _ \  | |\/| |  / _ \  |   / | ' < 
+  \___/  |_|\_| /_/ \_\ |_|  |_| /_/ \_\ |_|_\ |_|\_\
+"@ -ForegroundColor Cyan
     Write-Host "`nInstalando VPN, por favor espere...`n" -ForegroundColor White
 }
 
