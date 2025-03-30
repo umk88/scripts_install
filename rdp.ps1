@@ -40,6 +40,25 @@ Write-Host "Añadiendo exclusión al Antivirus para la carpeta 'C:\Program Files
 Add-MpPreference -ExclusionPath "C:\Program Files\RDP Wrapper"
 Write-Host "Exclusión añadida."
 
+# Ejecutar archivos .BAT en orden, asegurándose de que cada uno termine antes de ejecutar el siguiente
+$batFiles = @(
+    "C:\Program Files\RDP Wrapper\helper\autoupdate__enable_autorun_on_startup.bat",
+    "C:\Program Files\RDP Wrapper\install.bat",
+    "C:\Program Files\RDP Wrapper\autoupdate.bat",
+    "C:\Program Files\RDP Wrapper\rdpconf.exe"
+)
+
+foreach ($batFile in $batFiles) {
+    Write-Host "Ejecutando: $batFile..."
+    try {
+        Start-Process -FilePath $batFile -Wait -Verb RunAs
+        Write-Host "Proceso completado: $batFile"
+    } catch {
+        Write-Host "Error al ejecutar el archivo: $batFile - $_"
+        exit 1
+    }
+}
+
 # Reactivar Antivirus
 Set-MpPreference -DisableRealtimeMonitoring $false
 Write-Host "Antivirus reactivado."
