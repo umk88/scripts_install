@@ -19,8 +19,8 @@ function Show-UnamarkLogo {
 ██    ██ ██ ██  ██ ███████ ██ ████ ██ ███████ ██████  █████   
 ██    ██ ██  ██ ██ ██   ██ ██  ██  ██ ██   ██ ██   ██ ██  ██  
  ██████  ██   ████ ██   ██ ██      ██ ██   ██ ██   ██ ██   ██
-"@ -ForegroundColor Blue
-    Write-Host "`nInstalando VPN...`n" -ForegroundColor White
+"@ -ForegroundColor Cyan
+    Write-Host "`nInstalando VPN, por favor espere...`n" -ForegroundColor White
 }
 
 # Función para registrar eventos
@@ -69,7 +69,7 @@ try {
     Write-Log "ERROR: $_"
     Clear-Host
     Show-UnamarkLogo
-    Write-Host "❌ Hubo un error" -ForegroundColor Red
+    Write-Host "❌ Hubo un error en la instalación" -ForegroundColor Red
     Write-Host "Detalles: $_" -ForegroundColor Yellow
     exit 1
 } finally {
