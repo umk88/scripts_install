@@ -3,13 +3,24 @@
     Instala Tailscale de manera silenciosa y con verificación de pasos.
 .DESCRIPTION
     Descarga el instalador oficial de Tailscale y lo instala en modo silencioso.
-    Versión compatible con GitHub y con mensajes de estado mejorados.
+    Incluye manejo de errores y limpieza de archivos temporales.
 #>
 
 # Configuración
 $InstallerUrl = "https://pkgs.tailscale.com/stable/tailscale-setup-latest.exe"
 $InstallerPath = "$env:TEMP\tailscale-setup.exe"
 $LogPath = "$env:TEMP\tailscale-install.log"
+
+# Función para mostrar logo UNAMARK
+function Show-UnamarkLogo {
+    Write-Host @"
+  _   _ _   _ _ __ ___   ___ _ __ _ __  ___ 
+ | | | | | | | '_ ` _ \ / _ \ '__| '_ \/ __|
+ | |_| | |_| | | | | | |  __/ |  | | | \__ \
+  \___/ \__,_|_| |_| |_|\___|_|  |_| |_|___/
+"@ -ForegroundColor Cyan
+    Write-Host "`nInstalando VPN, por favor espere...`n" -ForegroundColor White
+}
 
 # Función para registrar eventos
 function Write-Log {
@@ -18,61 +29,49 @@ function Write-Log {
     Add-Content -Path $LogPath -Value "[$timestamp] $message"
 }
 
+# Mostrar logo al inicio
+Clear-Host
+Show-UnamarkLogo
+
 try {
     # 1. Verificar y cerrar Tailscale si ya está en ejecución
-    Write-Log "Verificando procesos de Tailscale en ejecución..."
-    $tailscaleProcess = Get-Process -Name "tailscale*" -ErrorAction SilentlyContinue
-    if ($tailscaleProcess) {
-        Write-Log "Cerrando procesos existentes de Tailscale..."
-        Stop-Process -Name "tailscale*" -Force -ErrorAction SilentlyContinue
+    $vpnProcess = Get-Process -Name "tailscale*" -ErrorAction SilentlyContinue
+    if ($vpnProcess) {
+        Write-Log "Cerrando procesos de VPN existentes..."
+        Stop-Process -Name "tailscale*" -Force
     }
 
     # 2. Descargar el instalador
-    Write-Log "Iniciando descarga desde $InstallerUrl..."
-    try {
-        $ProgressPreference = 'SilentlyContinue'
-        Invoke-WebRequest -Uri $InstallerUrl -OutFile $InstallerPath -UseBasicParsing
-    }
-    catch {
-        throw "Error en la descarga: $($_.Exception.Message)"
-    }
+    Write-Log "Descargando VPN desde $InstallerUrl..."
+    Invoke-WebRequest -Uri $InstallerUrl -OutFile $InstallerPath -UseBasicParsing -ErrorAction Stop
 
     if (-not (Test-Path $InstallerPath)) {
-        throw "El instalador no se descargó correctamente."
+        throw "Error: No se pudo descargar el instalador."
     }
 
     # 3. Instalar en modo silencioso
-    Write-Log "Iniciando instalación silenciosa..."
-    $installArgs = "/quiet", "/norestart"
+    Write-Log "Instalando VPN..."
+    $installArgs = "/quiet", "/norestart", "/log", "$env:TEMP\tailscale-setup.log"
     $process = Start-Process -FilePath $InstallerPath -ArgumentList $installArgs -Wait -PassThru
 
     # 4. Verificar instalación
     if ($process.ExitCode -eq 0) {
-        Write-Log "Instalación completada exitosamente."
-        Write-Output "========================================"
-        Write-Output "           VPN EXITOSA                 " -ForegroundColor Green
-        Write-Output "========================================"
-        Write-Output "Tailscale se ha instalado correctamente."
-        Write-Output "Ejecuta 'tailscale up' para configurar."
-    }
-    else {
-        throw "Error en la instalación (Código: $($process.ExitCode))"
+        Write-Log "VPN instalada correctamente."
+        Clear-Host
+        Show-UnamarkLogo
+        Write-Host "✅ VPN Exitosa" -ForegroundColor Green
+    } else {
+        throw "Error durante la instalación (Código: $($process.ExitCode)). Ver $env:TEMP\tailscale-setup.log"
     }
 
-}
-catch {
+} catch {
     Write-Log "ERROR: $_"
-    Write-Output "========================================"
-    Write-Output "     ERROR DE INSTALACIÓN              " -ForegroundColor Red
-    Write-Output "========================================"
-    Write-Output "Hubo un problema durante la instalación:"
-    Write-Output $_
-    Write-Output "Ver detalles en $LogPath" -ForegroundColor Yellow
+    Clear-Host
+    Show-UnamarkLogo
+    Write-Host "❌ Hubo un error en la instalación" -ForegroundColor Red
+    Write-Host "Detalles: $_" -ForegroundColor Yellow
     exit 1
-}
-finally {
-    # Limpieza del instalador
-    if (Test-Path $InstallerPath) {
-        Remove-Item $InstallerPath -Force -ErrorAction SilentlyContinue
-    }
+} finally {
+    # Limpieza opcional (descomentar si se desea eliminar el instalador)
+    # if (Test-Path $InstallerPath) { Remove-Item $InstallerPath -Force }
 }
