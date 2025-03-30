@@ -1,11 +1,3 @@
-<#
-.SYNOPSIS
-    Instala Tailscale de manera silenciosa y con verificación de pasos.
-.DESCRIPTION
-    Descarga el instalador oficial de Tailscale y lo instala en modo silencioso.
-    Incluye manejo de errores, limpieza de archivos temporales y mensajes personalizados.
-#>
-
 # Configuración
 $InstallerUrl = "https://pkgs.tailscale.com/stable/tailscale-setup-latest.exe"
 $InstallerPath = "$env:TEMP\tailscale-setup.exe"
