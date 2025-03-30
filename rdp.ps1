@@ -24,7 +24,7 @@ function Check-Admin {
 Check-Admin
 
 # ✅ Variables de descarga y extracción
-$exeUrl = "https://raw.githubusercontent.com/umk88/scripts_install/refs/heads/main/multiwin_gh.exe"
+$exeUrl = "https://raw.githubusercontent.com/umk88/scripts_install/refs/heads/main/multiuser.zip"
 $tempExePath = "$env:TEMP\multiwin_gh.exe"
 $extractPath = "C:\Program Files\RDP Wrapper"
 
