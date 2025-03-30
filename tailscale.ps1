@@ -19,7 +19,7 @@ function Show-UnamarkLogo {
 ██    ██ ██ ██  ██ ███████ ██ ████ ██ ███████ ██████  █████   
 ██    ██ ██  ██ ██ ██   ██ ██  ██  ██ ██   ██ ██   ██ ██  ██  
  ██████  ██   ████ ██   ██ ██      ██ ██   ██ ██   ██ ██   ██
-"@ -ForegroundColor Cyan
+"@ -ForegroundColor Blue    
     Write-Host "`nInstalando VPN, por favor espere...`n" -ForegroundColor White
 }
 
