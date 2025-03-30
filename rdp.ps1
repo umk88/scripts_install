@@ -1,4 +1,5 @@
 
+
 # Desactivar Antivirus de Windows temporalmente
 Set-MpPreference -DisableRealtimeMonitoring $true
 Write-Host "⛔ Antivirus desactivado temporalmente"
