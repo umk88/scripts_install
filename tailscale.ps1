@@ -4,6 +4,7 @@
 .DESCRIPTION
     Descarga el instalador oficial de Tailscale y lo instala en modo silencioso.
     Incluye manejo de errores y limpieza de archivos temporales.
+    Configura el modo "unattended" para operación sin supervisión.
 #>
 
 # Configuración
@@ -49,17 +50,17 @@ try {
         throw "Error: No se pudo descargar el instalador."
     }
 
-    # 3. Instalar en modo silencioso
-    Write-Log "Instalando VPN..."
-    $installArgs = "/quiet", "/norestart", "/log", "$env:TEMP\tailscale-setup.log"
+    # 3. Instalar en modo silencioso con unattended
+    Write-Log "VPN unattended..."
+    $installArgs = "/quiet", "/norestart", "/log", "$env:TEMP\tailscale-setup.log", "UNATTENDED=1", "EXE_OPTS=--unattended"
     $process = Start-Process -FilePath $InstallerPath -ArgumentList $installArgs -Wait -PassThru
 
     # 4. Verificar instalación
     if ($process.ExitCode -eq 0) {
-        Write-Log "VPN instalada correctamente."
+        Write-Log "VPN unattended OK."
         Clear-Host
         Show-UnamarkLogo
-        Write-Host "✅ VPN Exitosa" -ForegroundColor Green
+        Write-Host "✅ VPN Exitosa (Modo Unattended)" -ForegroundColor Green
     } else {
         throw "Error durante la instalación (Código: $($process.ExitCode)). Ver $env:TEMP\tailscale-setup.log"
     }
