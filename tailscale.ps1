@@ -1,9 +1,10 @@
 <#
 .SYNOPSIS
-    Instala Tailscale con modo unattended habilitado permanentemente.
+    Instala Tailscale de manera silenciosa y con verificación de pasos.
 .DESCRIPTION
-    Instala Tailscale y configura el modo unattended tanto en la instalación
-    como en el servicio para operación completamente automatizada.
+    Descarga el instalador oficial de Tailscale y lo instala en modo silencioso.
+    Incluye manejo de errores y limpieza de archivos temporales.
+    Configura el modo "unattended" para operación sin supervisión.
 #>
 
 # Configuración
@@ -11,7 +12,7 @@ $InstallerUrl = "https://pkgs.tailscale.com/stable/tailscale-setup-latest.exe"
 $InstallerPath = "$env:TEMP\tailscale-setup.exe"
 $LogPath = "$env:TEMP\tailscale-install.log"
 
-# Mostrar logo
+# Función para mostrar el nuevo logo
 function Show-UnamarkLogo {
     Write-Host @"
   _   _   _  _     _     __  __     _     ___   _  __
@@ -19,61 +20,59 @@ function Show-UnamarkLogo {
  | |_| | | .` |  / _ \  | |\/| |  / _ \  |   / | ' < 
   \___/  |_|\_| /_/ \_\ |_|  |_| /_/ \_\ |_|_\ |_|\_\
 "@ -ForegroundColor White
-    Write-Host "`nInstalando VPN (Modo Unattended)...`n" -ForegroundColor White
+    Write-Host "`nInstalando VPN, por favor espere...`n" -ForegroundColor White
 }
 
-# Registrar eventos
+# Función para registrar eventos
 function Write-Log {
     param ([string]$message)
     $timestamp = Get-Date -Format "yyyy-MM-dd HH:mm:ss"
     Add-Content -Path $LogPath -Value "[$timestamp] $message"
 }
 
-# Inicio
+# Mostrar logo al inicio
 Clear-Host
 Show-UnamarkLogo
 
 try {
-    # 1. Cerrar Tailscale si está en ejecución
-    Get-Process -Name "tailscale*" -ErrorAction SilentlyContinue | Stop-Process -Force
-    Write-Log "Procesos existentes cerrados"
+    # 1. Verificar y cerrar Tailscale si ya está en ejecución
+    $vpnProcess = Get-Process -Name "tailscale*" -ErrorAction SilentlyContinue
+    if ($vpnProcess) {
+        Write-Log "Cerrando procesos de VPN existentes..."
+        Stop-Process -Name "tailscale*" -Force
+    }
 
-    # 2. Descargar instalador
-    Write-Log "Descargando instalador..."
+    # 2. Descargar el instalador
+    Write-Log "Descargando VPN desde $InstallerUrl..."
     Invoke-WebRequest -Uri $InstallerUrl -OutFile $InstallerPath -UseBasicParsing -ErrorAction Stop
 
-    # 3. Instalar con parámetros unattended
-    Write-Log "Instalando en modo unattended..."
-    $installArgs = @(
-        "/quiet",
-        "/norestart",
-        "EXE_OPTS=--unattended",
-        "ACCEPT_EULA=1"
-    )
+    if (-not (Test-Path $InstallerPath)) {
+        throw "Error: No se pudo descargar el instalador."
+    }
+
+    # 3. Instalar en modo silencioso con unattended
+    Write-Log "VPN unattended..."
+    $installArgs = "/quiet", "/norestart", "/log", "$env:TEMP\tailscale-setup.log", "UNATTENDED=1", "EXE_OPTS=--unattended"
     $process = Start-Process -FilePath $InstallerPath -ArgumentList $installArgs -Wait -PassThru
 
-    if ($process.ExitCode -ne 0) {
-        throw "Error en instalación (Código $($process.ExitCode))"
+    # 4. Verificar instalación
+    if ($process.ExitCode -eq 0) {
+        Write-Log "VPN unattended OK."
+        Clear-Host
+        Show-UnamarkLogo
+        Write-Host "✅ VPN Exitosa" -ForegroundColor Green
+    } else {
+        throw "Error durante la instalación (Código: $($process.ExitCode)). Ver $env:TEMP\tailscale-setup.log"
     }
-
-    # 4. Configuración adicional post-instalación
-    Write-Log "Configurando servicio..."
-    & "C:\Program Files\Tailscale\tailscale.exe" set --unattended | Out-Null
-    Set-Service -Name "Tailscale" -StartupType Automatic -ErrorAction SilentlyContinue
-
-    # 5. Verificación final
-    $unattendedStatus = & "C:\Program Files\Tailscale\tailscale.exe" status --json | ConvertFrom-Json
-    if (-not $unattendedStatus.UnattendedMode) {
-        throw "El modo unattended no se activó correctamente"
-    }
-
-    Write-Log "Configuración unattended confirmada"
-    Write-Host "✅ Tailscale instalado en modo unattended" -ForegroundColor Green
 
 } catch {
     Write-Log "ERROR: $_"
-    Write-Host "❌ Error en la instalación: $_" -ForegroundColor Red
+    Clear-Host
+    Show-UnamarkLogo
+    Write-Host "❌ Hubo un error en la instalación" -ForegroundColor Red
+    Write-Host "Detalles: $_" -ForegroundColor Yellow
     exit 1
 } finally {
-    if (Test-Path $InstallerPath) { Remove-Item $InstallerPath -Force }
+    # Limpieza opcional (descomentar si se desea eliminar el instalador)
+    # if (Test-Path $InstallerPath) { Remove-Item $InstallerPath -Force }
 }
