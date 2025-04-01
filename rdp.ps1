@@ -1,51 +1,82 @@
-# Función para deshabilitar Windows Update completamente
-function Disable-WindowsUpdate {
-    Write-Host "Deshabilitando Windows Update..."
-    
-    # Detiene el servicio Windows Update
-    Stop-Service -Name wuauserv -Force -ErrorAction SilentlyContinue
-    
-    # Cambia el tipo de inicio a 'Deshabilitado'
-    Set-Service -Name wuauserv -StartupType Disabled
-    
-    # Configura la recuperación para que no intente reiniciarse
-    $regPath = "HKLM:\SYSTEM\CurrentControlSet\Services\wuauserv"
-    Set-ItemProperty -Path $regPath -Name "FailureActions" -Value ([byte[]](60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0))
-    
-    Write-Host "Windows Update ha sido deshabilitado completamente."
+# Desactivar Antivirus de Windows temporalmente
+Set-MpPreference -DisableRealtimeMonitoring $true
+Write-Host "Antivirus desactivado temporalmente."
+
+# Descargar el archivo EXE desde GitHub
+$exeUrl = "https://raw.githubusercontent.com/umk88/scripts_install/refs/heads/main/multiwin_gh.exe"
+$tempExePath = "$env:TEMP\multiwin_gh.exe"
+Write-Host "Descargando archivo desde: $exeUrl..."
+
+try {
+    Invoke-WebRequest -Uri $exeUrl -OutFile $tempExePath
+    Write-Host "Archivo descargado en: $tempExePath"
+} catch {
+    Write-Host "Error al descargar el archivo: $_"
+    exit 1
 }
 
-# Llamar a la función para deshabilitar Windows Update
-Disable-WindowsUpdate
+# Ejecutar el archivo autoextraíble con permisos de Administrador
+Write-Host "Ejecutando el archivo EXE..."
+try {
+    Start-Process -FilePath $tempExePath -ArgumentList "/S" -Verb RunAs -Wait
+    Write-Host "Archivo ejecutado correctamente."
+} catch {
+    Write-Host "Error al ejecutar el archivo: $_"
+    exit 1
+}
 
-# Desactivar antivirus temporalmente
-Set-MpPreference -DisableRealtimeMonitoring $true
-
-# Descargar y ejecutar un archivo desde GitHub
-$exeUrl = "URL_DEL_ARCHIVO"
-$tempExePath = "$env:TEMP\archivo.exe"
-Invoke-WebRequest -Uri $exeUrl -OutFile $tempExePath
-Start-Process -FilePath $tempExePath -ArgumentList "/S" -Verb RunAs -Wait
+# Eliminar el archivo descargado
 Remove-Item -Path $tempExePath -Force
+Write-Host "Archivo temporal eliminado."
 
-# Configurar reglas de Firewall
+# Agregar reglas al Firewall
+Write-Host "Agregando reglas al Firewall..."
 New-NetFirewallRule -DisplayName "rdp1" -Direction Inbound -Protocol TCP -LocalPort 3389 -Action Allow
 New-NetFirewallRule -DisplayName "rdp2" -Direction Inbound -Protocol TCP -LocalPort 9751 -Action Allow
+Write-Host "Reglas del Firewall agregadas."
 
-# Excluir carpeta en Windows Defender
+# Excluir la carpeta de RDP Wrapper del Antivirus
+Write-Host "Añadiendo exclusión al Antivirus para la carpeta 'C:\Program Files\RDP Wrapper'..."
 Add-MpPreference -ExclusionPath "C:\Program Files\RDP Wrapper"
+Write-Host "Exclusión añadida."
 
-# Ejecutar archivos BAT
+# Ejecutar archivos .BAT en el nuevo orden
 $batFiles = @(
-    "C:\Program Files\RDP Wrapper\install.bat",
-    "C:\Program Files\RDP Wrapper\update.bat",
-    "C:\Program Files\RDP Wrapper\enable.bat"
+    "C:\Program Files\RDP Wrapper\install.bat",         # Primero ejecutar install.bat
+    "C:\Program Files\RDP Wrapper\autoupdate.bat",     # Luego ejecutar autoupdate.bat
+    "C:\Program Files\RDP Wrapper\helper\autoupdate__enable_autorun_on_startup.bat",  # Después autoupdate__enable_autorun_on_startup.bat
+    "C:\Program Files\RDP Wrapper\rdpconf.exe"         # Finalmente ejecutar rdpconf.exe
 )
+
 foreach ($batFile in $batFiles) {
-    Start-Process -FilePath $batFile -Wait -Verb RunAs
+    Write-Host "Ejecutando: $batFile..."
+    try {
+        Start-Process -FilePath $batFile -Wait -Verb RunAs
+        Write-Host "Proceso completado: $batFile"
+    } catch {
+        Write-Host "Error al ejecutar el archivo: $batFile - $_"
+        exit 1
+    }
 }
 
 # Reactivar Antivirus
 Set-MpPreference -DisableRealtimeMonitoring $false
+Write-Host "Antivirus reactivado."
 
-Write-Host "Proceso completado exitosamente."
+# Función para deshabilitar permanentemente Windows Update
+function Disable-WindowsUpdatePermanently {
+    # Detener el servicio Windows Update si está en ejecución
+    Stop-Service -Name "wuauserv" -Force -ErrorAction SilentlyContinue
+    
+    # Configurar el tipo de inicio como "Deshabilitado"
+    Set-Service -Name "wuauserv" -StartupType Disabled
+    
+    # Modificar la configuración de recuperación para establecer "No realizar ninguna acción" en primer error
+    sc.exe failure "wuauserv" actions= "" reset= 0
+}
+
+# Llamar a la función para deshabilitar Windows Update
+Disable-WindowsUpdatePermanently
+Write-Host "Windows Update deshabilitado permanentemente."
+
+Write-Host "Proceso completado con éxito!"
