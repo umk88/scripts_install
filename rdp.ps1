@@ -5,13 +5,13 @@ Write-Host "Antivirus desactivado temporalmente."
 # Descargar el archivo EXE desde GitHub
 $exeUrl = "https://raw.githubusercontent.com/umk88/scripts_install/refs/heads/main/multiwin_gh.exe"
 $tempExePath = "$env:TEMP\multiwin_gh.exe"
-Write-Host "Descargando archivo..."
+Write-Host "Descargando archivo..." -NoNewline
 
 try {
     Invoke-WebRequest -Uri $exeUrl -OutFile $tempExePath
-    Write-Host "Archivo descargado"
+    Write-Host "OK"
 } catch {
-    Write-Host "Error al descargar el archivo"
+    Write-Host "Error"
     exit 1
 }
 
@@ -19,9 +19,9 @@ try {
 Write-Host "Ejecutando el archivo..." -NoNewline
 try {
     Start-Process -FilePath $tempExePath -ArgumentList "/S" -Verb RunAs -Wait
-    Write-Host "OK."
+    Write-Host "OK"
 } catch {
-    Write-Host "Error al ejecutar el archivo: "
+    Write-Host "Error"
     exit 1
 }
 
@@ -32,7 +32,7 @@ Write-Host "Archivo temporal eliminado."
 # Agregar reglas al Firewall
 Write-Host "Firewall..." -NoNewline
 New-NetFirewallRule -DisplayName "rdp1" -Direction Inbound -Protocol TCP -LocalPort 3389 -Action Allow -ErrorAction SilentlyContinue | Out-Null
-Write-Host " OK"
+Write-Host "OK"
 
 # Excluir la carpeta de RDP Wrapper del Antivirus
 Write-Host "Exclusiones AV..." -NoNewline
@@ -60,7 +60,7 @@ foreach ($batFile in $batFiles) {
 
 # Reactivar Antivirus
 Set-MpPreference -DisableRealtimeMonitoring $false
-Write-Host "Antivirus reactivado."
+Write-Host "Antivirus reactivado...OK"
 
 function Disable-WindowsUpdate {
     Write-Host "Deshabilitando Windows Update..." -NoNewline
@@ -75,7 +75,7 @@ function Disable-WindowsUpdate {
     $regPath = "HKLM:\SYSTEM\CurrentControlSet\Services\wuauserv"
     Set-ItemProperty -Path $regPath -Name "FailureActions" -Value ([byte[]](60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0))
     
-    Write-Host "OK."
+    Write-Host "OK"
 }
 
 # Llamar a la función
