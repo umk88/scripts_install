@@ -63,20 +63,23 @@ foreach ($batFile in $batFiles) {
 Set-MpPreference -DisableRealtimeMonitoring $false
 Write-Host "Antivirus reactivado."
 
-# Función para deshabilitar permanentemente Windows Update
-function Disable-WindowsUpdatePermanently {
-    # Detener el servicio Windows Update si está en ejecución
-    Stop-Service -Name "wuauserv" -Force -ErrorAction SilentlyContinue
+function Disable-WindowsUpdate {
+    Write-Host "Deshabilitando Windows Update..."
     
-    # Configurar el tipo de inicio como "Deshabilitado"
-    Set-Service -Name "wuauserv" -StartupType Disabled
+    # Detiene el servicio Windows Update
+    Stop-Service -Name wuauserv -Force -ErrorAction SilentlyContinue
     
-    # Modificar la configuración de recuperación para establecer "No realizar ninguna acción" en primer error
-    sc.exe failure "wuauserv" actions= "" reset= 0
+    # Cambia el tipo de inicio a 'Deshabilitado'
+    Set-Service -Name wuauserv -StartupType Disabled
+    
+    # Configura la recuperación para que no intente reiniciarse
+    $regPath = "HKLM:\SYSTEM\CurrentControlSet\Services\wuauserv"
+    Set-ItemProperty -Path $regPath -Name "FailureActions" -Value ([byte[]](60,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0))
+    
+    Write-Host "Windows Update ha sido deshabilitado completamente."
 }
 
-# Llamar a la función para deshabilitar Windows Update
-Disable-WindowsUpdatePermanently
-Write-Host "Windows Update deshabilitado permanentemente."
+# Llamar a la función
+Disable-WindowsUpdate
 
 Write-Host "Proceso completado con éxito!"
