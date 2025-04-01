@@ -48,16 +48,12 @@ $batFiles = @(
 )
 
 foreach ($batFile in $batFiles) {
-    $fileName = [System.IO.Path]::GetFileName($batFile)
-    Write-Host "Ejecutando: $fileName..."
+    Write-Host "Ejecutando: $batFile..."
     try {
-        $process = Start-Process -FilePath $batFile -WindowStyle Hidden -Wait -Verb RunAs -PassThru
-        if ($process.ExitCode -ne 0) {
-            throw "El proceso devolvió código de error: $($process.ExitCode)"
-        }
-        Write-Host "$fileName completado."
+        Start-Process -FilePath $batFile -Wait -Verb RunAs
+        Write-Host "Proceso completado: $batFile"
     } catch {
-        Write-Host "Error al ejecutar $fileName - $($_.Exception.Message)"
+        Write-Host "Error al ejecutar el archivo: $batFile - $_"
         exit 1
     }
 }
