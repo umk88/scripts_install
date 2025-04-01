@@ -30,9 +30,9 @@ Remove-Item -Path $tempExePath -Force
 Write-Host "Archivo temporal eliminado."
 
 # Agregar reglas al Firewall
-Write-Host "Firewall..."
-New-NetFirewallRule -DisplayName "rdp1" -Direction Inbound -Protocol TCP -LocalPort 3389 -Action Allow
-Write-Host "OK"
+Write-Host "Firewall..." -NoNewline
+New-NetFirewallRule -DisplayName "rdp1" -Direction Inbound -Protocol TCP -LocalPort 3389 -Action Allow -ErrorAction SilentlyContinue | Out-Null
+Write-Host " OK"
 
 # Excluir la carpeta de RDP Wrapper del Antivirus
 Write-Host "Exclusiones AV..."
