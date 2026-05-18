@@ -29,7 +29,7 @@ sc start AnyDesk
 sc start AnyDesk
 if %errorlevel% neq 1056 goto start_any
 set AnyDesk1=%SystemDrive%\Program Files (x86)\AnyDesk\AnyDesk.exe
-set AnyDesk2=%SystemDrive%\Program Files\Desk\AnyDesk.exe
+set AnyDesk2=%SystemDrive%\Program Files\AnyDesk\AnyDesk.exe
 if exist "%AnyDesk1%" start "" "%AnyDesk1%"
 if exist "%AnyDesk2%" start "" "%AnyDesk2%"
 exit /b
